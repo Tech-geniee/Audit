@@ -4,25 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Audit App</title>
-
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="app">
-  <h1>Audit App</h1>
+  <div class="topbar">
+    <div>
+      <h1>Audit App</h1>
+      <p class="subtitle">Upload salary sheet and generate editable remarks</p>
+    </div>
+  </div>
 
-  <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
-  
-  <table id="table"></table>
+  <div class="upload-box">
+    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
+  </div>
+
+  <div class="table-wrap">
+    <table id="table"></table>
+  </div>
 </div>
 
-<!-- Excel library -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-
-<!-- Your JS -->
 <script src="script.js"></script>
-
 </body>
 </html>
