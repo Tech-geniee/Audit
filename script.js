@@ -1,31 +1,65 @@
-document.getElementById("fileInput").addEventListener("change", function (e) {
+const fileInput = document.getElementById("fileInput");
+const table = document.getElementById("table");
+
+fileInput.addEventListener("change", function (e) {
   const file = e.target.files[0];
-  const reader = new FileReader();
+  if (!file) return;
 
-  reader.onload = function (event) {
-    const text = event.target.result;
-    const rows = text.split("\n").map(r => r.split(","));
+  const fileName = file.name.toLowerCase();
+  table.innerHTML = "";
 
-    const table = document.getElementById("table");
-    table.innerHTML = "";
+  if (fileName.endsWith(".csv")) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const text = event.target.result;
+      const rows = text
+        .split("\n")
+        .map(row => row.trim())
+        .filter(row => row.length > 0)
+        .map(row => row.split(","));
 
-    rows.forEach((row, i) => {
-      const tr = document.createElement("tr");
+      renderTable(rows);
+    };
+    reader.readAsText(file);
+  } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      const data = new Uint8Array(event.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
 
-      row.forEach(cell => {
-        const td = document.createElement(i === 0 ? "th" : "td");
-        td.textContent = cell;
-        tr.appendChild(td);
-      });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
 
-      // Add Remarks column
-      const remarks = document.createElement("td");
-      remarks.textContent = i === 0 ? "Remarks" : "No discrepancy";
-      tr.appendChild(remarks);
-
-      table.appendChild(tr);
-    });
-  };
-
-  reader.readAsText(file);
+      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      renderTable(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    table.innerHTML = "<tr><td>Unsupported file format</td></tr>";
+  }
 });
+
+function renderTable(rows) {
+  table.innerHTML = "";
+
+  if (!rows || rows.length === 0) {
+    table.innerHTML = "<tr><td>No data found</td></tr>";
+    return;
+  }
+
+  rows.forEach((row, rowIndex) => {
+    const tr = document.createElement("tr");
+
+    row.forEach(cell => {
+      const cellEl = document.createElement(rowIndex === 0 ? "th" : "td");
+      cellEl.textContent = cell ?? "";
+      tr.appendChild(cellEl);
+    });
+
+    const remarksCell = document.createElement(rowIndex === 0 ? "th" : "td");
+    remarksCell.textContent = rowIndex === 0 ? "Remarks" : "No discrepancy";
+    tr.appendChild(remarksCell);
+
+    table.appendChild(tr);
+  });
+}
